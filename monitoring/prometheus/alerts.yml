@@ -1,0 +1,160 @@
+groups:
+  - name: p16_platform_alerts
+    interval: 30s
+    rules:
+      # ============= FastAPI Alerts =============
+      - alert: HighPredictionLatency
+        expr: histogram_quantile(0.95, rate(prediction_latency_seconds_bucket[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: fastapi
+        annotations:
+          summary: "High prediction latency detected"
+          description: "95th percentile prediction latency is {{ $value }}s (threshold: 0.1s)"
+
+      - alert: HighPredictionErrorRate
+        expr: rate(predictions_total{status="error"}[5m]) / rate(predictions_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: fastapi
+        annotations:
+          summary: "High prediction error rate"
+          description: "Prediction error rate is {{ $value | humanizePercentage }} (threshold: 10%)"
+
+      - alert: FastAPIDown
+        expr: up{job="fastapi"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: fastapi
+        annotations:
+          summary: "FastAPI service is down"
+          description: "FastAPI model serving is unavailable"
+
+      # ============= Kafka Alerts =============
+      - alert: KafkaConsumerLag
+        expr: kafka_consumer_lag > 1000
+        for: 10m
+        labels:
+          severity: warning
+          component: kafka
+        annotations:
+          summary: "High Kafka consumer lag"
+          description: "Consumer lag is {{ $value }} messages (threshold: 1000)"
+
+      - alert: KafkaBrokerDown
+        expr: up{job="kafka"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: kafka
+        annotations:
+          summary: "Kafka broker is down"
+          description: "Kafka broker is unavailable"
+
+      # ============= Airflow Alerts =============
+      - alert: AirflowDAGFailed
+        expr: increase(airflow_dag_run_failed_total[1h]) > 3
+        for: 5m
+        labels:
+          severity: warning
+          component: airflow
+        annotations:
+          summary: "Multiple Airflow DAG failures"
+          description: "{{ $value }} DAG runs failed in the last hour"
+
+      - alert: AirflowSchedulerDown
+        expr: up{job="airflow"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          component: airflow
+        annotations:
+          summary: "Airflow scheduler is down"
+          description: "Airflow scheduler is unavailable"
+
+      # ============= Database Alerts =============
+      - alert: HighDatabaseConnections
+        expr: pg_stat_database_numbackends > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: postgres
+        annotations:
+          summary: "High number of database connections"
+          description: "{{ $value }} active connections (threshold: 80)"
+
+      - alert: DatabaseDown
+        expr: up{job="postgres"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: postgres
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL is unavailable"
+
+      # ============= Cost Alerts =============
+      - alert: HighDailyCloudCost
+        expr: daily_cloud_cost_usd > 10
+        for: 1h
+        labels:
+          severity: warning
+          component: cost
+        annotations:
+          summary: "High daily cloud cost"
+          description: "Daily cloud cost is ${{ $value }} (budget: $10/day = $300/month)"
+
+      - alert: MonthlyBudgetExceeded
+        expr: monthly_cloud_cost_usd > 100
+        for: 1h
+        labels:
+          severity: critical
+          component: cost
+        annotations:
+          summary: "Monthly cloud budget exceeded"
+          description: "Monthly cost is ${{ $value }} (budget: $100/month)"
+
+      # ============= Data Quality Alerts =============
+      - alert: HighDataQualityFailureRate
+        expr: rate(data_quality_check_failed_total[1h]) / rate(data_quality_check_total[1h]) > 0.05
+        for: 30m
+        labels:
+          severity: warning
+          component: data_quality
+        annotations:
+          summary: "High data quality failure rate"
+          description: "{{ $value | humanizePercentage }} of data quality checks failing (threshold: 5%)"
+
+      # ============= System Resource Alerts =============
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 90
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}% on {{ $labels.instance }}"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Low disk space"
+          description: "Only {{ $value }}% disk space available on {{ $labels.instance }}"

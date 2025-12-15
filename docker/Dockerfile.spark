@@ -1,0 +1,52 @@
+FROM apache/spark:3.5.0-python3
+
+USER root
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    vim \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements-spark.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# Install Delta Lake
+RUN pip install --no-cache-dir \
+    delta-spark==3.0.0 \
+    pystdf==1.4.0 \
+    mlflow==2.12.0
+
+# Configure Spark for Delta Lake and S3
+ENV SPARK_CLASSPATH="/opt/spark/jars/*"
+
+# Download Delta Lake JARs
+RUN cd /opt/spark/jars && \
+    curl -O https://repo1.maven.org/maven2/io/delta/delta-spark_2.12/3.0.0/delta-spark_2.12-3.0.0.jar && \
+    curl -O https://repo1.maven.org/maven2/io/delta/delta-storage/3.0.0/delta-storage-3.0.0.jar
+
+# Download AWS SDK for S3 support
+RUN cd /opt/spark/jars && \
+    curl -O https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar && \
+    curl -O https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.262/aws-java-sdk-bundle-1.12.262.jar
+
+# Create working directory
+WORKDIR /app
+
+# Copy application code
+COPY spark-jobs /app/jobs
+COPY scripts /app/scripts
+
+# Set permissions
+RUN chmod -R 755 /app
+
+USER spark
+
+# Set Spark configuration
+ENV SPARK_MASTER=spark://spark-master:7077
+ENV SPARK_HOME=/opt/spark
+ENV PYTHONPATH=/opt/spark/python:/opt/spark/python/lib/py4j-0.10.9.7-src.zip:$PYTHONPATH
+
+CMD ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.master.Master"]

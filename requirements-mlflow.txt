@@ -1,0 +1,8 @@
+# MLflow Server Dependencies
+mlflow[extras]==2.12.0
+psycopg2-binary==2.9.9
+boto3==1.34.0
+scikit-learn==1.4.0
+xgboost==2.0.3
+numpy==1.26.4
+pandas==2.2.0
