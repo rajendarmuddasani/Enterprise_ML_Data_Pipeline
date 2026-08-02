@@ -310,12 +310,12 @@ async def predict(model_key: str, request: PredictionRequest):
         logger.info(f"Prediction successful: {model_key}, latency: {latency_ms:.2f}ms")
         return response
         
+    except HTTPException:
+        raise  # preserve 404 / 422 from model-not-found check
     except Exception as e:
         PREDICTION_COUNTER.labels(model_name=model_key, status="error").inc()
         logger.error(f"Prediction failed for {model_key}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
-
-@app.post("/predict/{model_key}/batch", tags=["Predictions"])
 async def predict_batch(model_key: str, request: BatchPredictionRequest):
     """
     Make batch predictions using the specified model

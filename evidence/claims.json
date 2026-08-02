@@ -1,0 +1,36 @@
+{
+  "project": "Enterprise ML Data Pipeline",
+  "claims": [
+    {
+      "claim": "FastAPI serves predictions for 7 ML model configurations",
+      "value": 7,
+      "unit": "model_configs",
+      "evidence_class": "measured",
+      "artifact": "fastapi-app/main.py",
+      "command": "pytest tests/test_fastapi.py -v"
+    },
+    {
+      "claim": "API health, root, list-models, single predict, batch predict, invalid-model, missing-feature endpoints all pass",
+      "value": 7,
+      "unit": "passing_tests",
+      "evidence_class": "measured",
+      "artifact": "tests/test_fastapi.py",
+      "command": "pytest tests/test_fastapi.py -v"
+    },
+    {
+      "claim": "Mock model fallback ensures API responds without MLflow server",
+      "value": true,
+      "unit": "boolean",
+      "evidence_class": "measured",
+      "artifact": "fastapi-app/main.py",
+      "note": "create_mock_model() invoked when MLflow URI unreachable"
+    },
+    {
+      "claim": "Batch prediction supports N-row input; returns N predictions",
+      "value": "N == len(features_batch)",
+      "unit": "identity",
+      "evidence_class": "measured",
+      "artifact": "tests/test_fastapi.py::test_batch_prediction"
+    }
+  ]
+}

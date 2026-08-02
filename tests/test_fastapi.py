@@ -8,7 +8,7 @@ import sys
 import os
 
 # Add fastapi-app to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'fastapi-app'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'fastapi-app'))
 
 from main import app
 
