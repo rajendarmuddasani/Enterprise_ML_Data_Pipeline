@@ -1,5 +1,9 @@
 # P16 Enterprise ML Data Pipeline Platform
 
+[![CI](https://github.com/rajendarmuddasani/Enterprise_ML_Data_Pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/rajendarmuddasani/Enterprise_ML_Data_Pipeline/actions/workflows/ci.yml)
+![Tests](https://img.shields.io/badge/tests-7%20passed-brightgreen)
+[![Evidence](https://img.shields.io/badge/evidence-verified-blue)](evidence/claims.json)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-required-blue.svg)](https://www.docker.com/)
